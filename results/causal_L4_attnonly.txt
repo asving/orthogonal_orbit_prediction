@@ -1,0 +1,24 @@
+##### L4_attnonly: late MSE vs least squares 0.0015
+
+--- Test 1: value-path patching (causal pair weight w vs LS coefficient c and raw dot product s) ---
+  t= 4 layer 1          corr(w,c) +0.725  corr(w,s) +0.789   w ~ 0.20 c + 0.38 s
+  t= 4 layers >= 2      corr(w,c) +0.675  corr(w,s) +0.308   w ~ 0.22 c + -0.07 s
+  t= 4 all layers >= 1  corr(w,c) +0.872  corr(w,s) +0.753   w ~ 0.45 c + 0.30 s
+  t= 4 gradient-step test: corr(w from layers>=2, c - w from layer 1) +0.751
+  t=12 layer 1          corr(w,c) +0.724  corr(w,s) +0.790   w ~ 0.22 c + 0.17 s
+  t=12 layers >= 2      corr(w,c) +0.342  corr(w,s) +0.034   w ~ 0.10 c + -0.03 s
+  t=12 all layers >= 1  corr(w,c) +0.771  corr(w,s) +0.738   w ~ 0.34 c + 0.14 s
+  t=12 gradient-step test: corr(w from layers>=2, c - w from layer 1) +0.415
+
+--- Test 2: query patching with a donor that has the same x_t but a different context ---
+  t= 6 patch similarity heads (L0, non-prev)  MSE vs LS 0.0107 -> 0.1165   cos(shift, -M(S'-S)x_t) +0.025  (53% positive)
+  t= 6 patch prev-token head (control)        MSE vs LS 0.0107 -> 0.2414   cos(shift, -M(S'-S)x_t) +0.036  (52% positive)
+  t=12 patch similarity heads (L0, non-prev)  MSE vs LS 0.0013 -> 0.0334   cos(shift, -M(S'-S)x_t) +0.030  (53% positive)
+  t=12 patch prev-token head (control)        MSE vs LS 0.0013 -> 0.0587   cos(shift, -M(S'-S)x_t) +0.049  (56% positive)
+  t=20 patch similarity heads (L0, non-prev)  MSE vs LS 0.0008 -> 0.0233   cos(shift, -M(S'-S)x_t) +0.070  (55% positive)
+  t=20 patch prev-token head (control)        MSE vs LS 0.0008 -> 0.0229   cos(shift, -M(S'-S)x_t) +0.017  (52% positive)
+
+--- Test 3: replace layer-1 attention (queries t>=8, keys j>=1) with fitted idealised patterns ---
+  real attention:                     MSE vs LS 0.0012
+  pure dot product <x_t, x_(j-1)>     MSE vs LS 0.0694
+  S-preconditioned (x, Sx) bilinear   MSE vs LS 0.0598

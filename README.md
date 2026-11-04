@@ -24,4 +24,19 @@ U is never formed. Writing x_t as a combination of earlier tokens and shifting e
 
 **Not yet pinned down.** About a third of the layer-1 pattern is a per-query adaptive correction that no fixed bilinear form captures (candidate: softmax normalisation acting as a data-dependent step size). Value-path weights still differ from c with fewer than n tokens, which may partly reflect that the perturbation leaves the manifold of valid trajectories (it breaks inner-product invariants).
 
+## RNNs on the same task (what we are confident of)
+
+Single-layer LSTM and GRU (hidden 256) reach late MSE 0.012 / 0.015. A vanilla RNN reaches 0.106. Least squares reaches 0.
+
+For any U, Cayley–Hamilton gives x_{t+1} = Σ_{k=0..5} a_k x_{t-k} with a = −(characteristic-polynomial coefficients of U). These coefficients depend on U only, not on v. For the LSTM and GRU:
+
+1. **U, S and S⁺ are not stored.** Linear probes of the hidden state give R² ≤ 0.3 for U and ≈ 0 for S and S⁺.
+2. **The prediction is this lag recurrence.** The effective coefficients a_t = W_t⁻¹ x̂_{t+1} (W_t = the last 6 tokens) converge to the characteristic-polynomial coefficients. Their distance from them falls from 1.8 at t=5 to 0.2 at t=23 (|a| ≈ 2).
+3. **The coefficients do not depend on v.** Running the same U from 8 different starting vectors gives coefficients with spread 0.06 at t=22. The spread of the true coefficients across different U is 6.9.
+4. **The coefficients are in the hidden state.** A linear probe reads the effective a_t with R² ≈ 0.9 (sequences with well-conditioned windows).
+
+The transformer regresses over token positions with the context as its memory. The RNN learns the coefficients of the recurrence over lags, which depend on U only.
+
+**Not pinned down:** the rule that updates the coefficients. On training-distribution sequences, the predictions match regularised least squares over lags using the last one or two windows. That test cannot tell candidate rules apart, because one window already determines a. After a splice to another sequence, the RNN recovers over more than 10 steps. Least squares with forgetting, normalised LMS and step-capped variants all recover in about 6.
+
 **Files.** `common.py` task, model with intervention hooks, least-squares reference. `train.py` (`python train.py 2` or `python train.py 4 --attnonly`). `causal.py` the three tests. `models/` trained weights.
